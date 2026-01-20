@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Car Game with Collision</title>
+  <style>
+    body {
+      margin: 0;
+      background: #333;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      overflow: hidden;
+      font-family: sans-serif;
+    }
+    #gameCanvas {
+      background: #555;
+      border: 3px solid #fff;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="gameCanvas" width="400" height="600"></canvas>
+<audio src="photo/inside-car-driving-24677.mp3"></audio>
+
+  <script>
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+
+    let gameOver = false;
+
+    // Player car
+    const player = {
+      x: 180,
+      y: 500,
+      width: 40,
+      height: 80,
+      speed: 5,
+      img: new Image()
+    };
+    player.img.src = 'https://toppng.com/uploads/preview/aston-martin-one77-01-top-down-car-sprite-1156302814774vtgthfmb.png';
+
+    // Opponent car
+    const opponent = {
+      x: 180,
+      y: -100,
+      width: 40,
+      height: 80,
+      speed: 3,
+      img: new Image()
+    };
+    opponent.img.src = 'https://toppng.com/uploads/preview/aston-martin-one77-01-top-down-car-sprite-1156302814774vtgthfmb.png';
+
+    const keys = { ArrowLeft: false, ArrowRight: false };
+
+    document.addEventListener('keydown', (e) => { if(e.key in keys) keys[e.key] = true; });
+    document.addEventListener('keyup', (e) => { if(e.key in keys) keys[e.key] = false; });
+
+    // Har 10 sekundda opponent tezlashadi
+    setInterval(() => { opponent.speed += 1; }, 10000);
+
+    function checkCollision(a, b) {
+      return !(
+        a.x + a.width < b.x ||
+        a.x > b.x + b.width ||
+        a.y + a.height < b.y ||
+        a.y > b.y + b.height
+      );
+    }
+
+    function update() {
+      if(gameOver) return;
+
+      // Player movement
+      if(keys.ArrowLeft && player.x > 0) player.x -= player.speed;
+      if(keys.ArrowRight && player.x + player.width < canvas.width) player.x += player.speed;
+
+      // Opponent movement
+      opponent.y += opponent.speed;
+
+      // Opponent reset
+      if(opponent.y > canvas.height) {
+        opponent.y = -100;
+        opponent.x = Math.random() * (canvas.width - opponent.width);
+      }
+
+      // Collision detection
+      if(checkCollision(player, opponent)) {
+        gameOver = true;
+        alert("Game Over! 😵");
+        location.reload(); // o‘yinni qayta yuklash
+      }
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // Road
+      ctx.fillStyle = '#777';
+      ctx.fillRect(50, 0, 300, canvas.height);
+
+      // Lane lines
+      ctx.strokeStyle = '#fff';
+      ctx.lineWidth = 5;
+      for(let i = 0; i < canvas.height; i += 40){
+        ctx.beginPath();
+        ctx.moveTo(200, i);
+        ctx.lineTo(200, i + 20);
+        ctx.stroke();
+      }
+
+      // Draw cars
+      ctx.drawImage(player.img, player.x, player.y, player.width, player.height);
+      ctx.drawImage(opponent.img, opponent.x, opponent.y, opponent.width, opponent.height);
+    }
+
+    function gameLoop() {
+      update();
+      draw();
+      if(!gameOver) requestAnimationFrame(gameLoop);
+    }
+
+    gameLoop();
+
+    const bgMusic = new Audio('photo/inside-car-driving-24677.mp3');
+bgMusic.loop = true;
+
+// Birinchi foydalanuvchi harakati bilan ishga tushirish
+window.addEventListener('keydown', () => {
+  if(bgMusic.paused) bgMusic.play();
+}, { once: true });
+  </script>
+</body>
+</html>
